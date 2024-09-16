@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 data class User(
     @Id
     @GeneratedValue
-    private val id: Int,
+    private val id: Int?,
     private val firstname: String,
     private val lastname: String,
     private val dateOfBirth: LocalDate,
@@ -29,10 +29,10 @@ data class User(
     private val enabled: Boolean,
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private val createdDate: LocalDateTime,
+    private val createdDate: LocalDateTime?,
     @LastModifiedDate
     @Column(insertable = false)
-    private val lastModifiedDate: LocalDateTime,
+    private val lastModifiedDate: LocalDateTime?,
     @ManyToMany(fetch = FetchType.EAGER)
     private val roles: List<Role>
 ) : UserDetails, Principal {
