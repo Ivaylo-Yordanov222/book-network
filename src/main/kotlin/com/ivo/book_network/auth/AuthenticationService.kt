@@ -1,7 +1,10 @@
 package com.ivo.book_network.auth
 
+import com.ivo.book_network.auth.dto.LoginRequest
 import com.ivo.book_network.auth.dto.RegistrationRequest
 import com.ivo.book_network.role.RoleRepository
+import com.ivo.book_network.security.JWTService
+import com.ivo.book_network.security.dto.TokenResponse
 import com.ivo.book_network.user.User
 import com.ivo.book_network.user.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -14,8 +17,8 @@ class AuthenticationService(
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
+    private val jwtService: JWTService
 ) {
-
 
     fun register(request: RegistrationRequest) {
         val userRole = roleRepository.findByName("USER")
@@ -36,4 +39,15 @@ class AuthenticationService(
         )
         userRepository.save(user)
     }
+
+    fun login(loginRequest: LoginRequest): TokenResponse {
+        val dbUser = userRepository.findByEmail(loginRequest.email)
+            ?: throw IllegalStateException("Incorrect email or password")
+        if (!passwordEncoder.matches(loginRequest.password, dbUser.password)) {
+            throw IllegalStateException("Incorrect email or password")
+        }
+
+        return jwtService.generateToken(dbUser.username, dbUser.authorities)
+    }
+
 }
