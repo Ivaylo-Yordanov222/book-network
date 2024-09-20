@@ -21,8 +21,8 @@ data class Role(
     private val createdDate: LocalDateTime,
     @LastModifiedDate
     @Column(insertable = false)
-    private val lastModifiedDate: LocalDateTime,
+    private var lastModifiedDate: LocalDateTime? = null,
     @ManyToMany(mappedBy = "roles")
     @JsonIgnore
-    private val users: List<User>
+    private val users: List<User>? = null
 )
