@@ -4,6 +4,10 @@ import com.ivo.book_network.auth.dto.LoginRequest
 import com.ivo.book_network.auth.dto.RegistrationRequest
 import com.ivo.book_network.email.EmailService
 import com.ivo.book_network.email.EmailTemplateName
+import com.ivo.book_network.handler.exception.AuthenticationValidationException
+import com.ivo.book_network.handler.exception.RoleNotFoundException
+import com.ivo.book_network.handler.exception.TokenNotValidException
+import com.ivo.book_network.handler.exception.UserExistsException
 import com.ivo.book_network.role.Role
 import com.ivo.book_network.role.RoleRepository
 import com.ivo.book_network.role.RoleType
@@ -14,6 +18,7 @@ import com.ivo.book_network.user.TokenRepository
 import com.ivo.book_network.user.User
 import com.ivo.book_network.user.UserRepository
 import jakarta.mail.MessagingException
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -37,9 +42,15 @@ class AuthenticationService(
         private const val ACTIVATION_CODE_CHARACTERS = "0123456789"
     }
 
+    @Transactional
     fun register(request: RegistrationRequest) {
         val role = roleRepository.findByName(RoleType.USER.name)
-            ?: throw IllegalStateException("Role was not found")
+            ?: throw RoleNotFoundException("Role was not found")
+
+        val existingUser = userRepository.findByEmail(request.email)
+        if (existingUser != null) {
+            throw UserExistsException("User with that email already exists")
+        }
 
         val user = toUser(request, role)
         userRepository.save(user)
@@ -48,14 +59,14 @@ class AuthenticationService(
 
     fun login(loginRequest: LoginRequest): TokenResponse {
         val dbUser = userRepository.findByEmail(loginRequest.email)
-            ?: throw IllegalStateException("Incorrect email or password")
+            ?: throw AuthenticationValidationException("Incorrect email or password")
 
         if (!dbUser.isEnabled) {
-            throw IllegalStateException("User is not active")
+            throw AuthenticationValidationException("User is not active")
         }
 
         if (!passwordEncoder.matches(loginRequest.password, dbUser.password)) {
-            throw IllegalStateException("Incorrect email or password")
+            throw AuthenticationValidationException("Incorrect email or password")
         }
 
         return jwtService.generateToken(dbUser.username, dbUser.authorities)
@@ -110,11 +121,12 @@ class AuthenticationService(
     )
 
     fun activateAccount(token: String) {
-        val existingToken = tokenRepository.findByToken(token) ?: throw IllegalStateException("Token is not valid")
+        val existingToken = tokenRepository.findByToken(token)
+            ?: throw TokenNotValidException("Activation code is not valid")
 
         if (Instant.now().isAfter(existingToken.expiresAt)) {
             sendValidationEmail(existingToken.user)
-            throw IllegalStateException("Activation token has expired. A new token has been sent to your email")
+            throw TokenNotValidException("Activation token has expired. A new token has been sent to your email")
         }
 
         existingToken.user.isEnabled = true
