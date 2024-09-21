@@ -4,6 +4,7 @@ import com.ivo.book_network.handler.exception.*
 import jakarta.mail.MessagingException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ServerWebExchange
@@ -67,6 +68,16 @@ class GlobalExceptionHandler {
         exchange: ServerWebExchange
     ): ResponseEntity<ErrorResponse> {
         val status = HttpStatus.INTERNAL_SERVER_ERROR
+        val response = ErrorResponse(status.value(), ex.message!!)
+        return ResponseEntity(response, status)
+    }
+
+    @ExceptionHandler(BadCredentialsException::class)
+    fun handleMessagingException(
+        ex: BadCredentialsException,
+        exchange: ServerWebExchange
+    ): ResponseEntity<ErrorResponse> {
+        val status = HttpStatus.BAD_REQUEST
         val response = ErrorResponse(status.value(), ex.message!!)
         return ResponseEntity(response, status)
     }

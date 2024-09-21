@@ -1,6 +1,5 @@
 package com.ivo.book_network.security
 
-import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -18,23 +17,32 @@ class AuthManager(
         return Mono.justOrEmpty(authentication)
             .cast(BearerToken::class.java)
             .flatMap { auth ->
-                val username = jwtService.getUsername(auth.credentials)
+                // Try to extract the username from the token
+                val token = auth.credentials
+                try {
+                    val username = jwtService.getUsername(token)
 
-                Mono.justOrEmpty(userDetailsServiceImpl.loadUserByUsername(username))
-                    .flatMap { userDetails ->
-                        if (jwtService.validateToken(userDetails, auth.credentials)) {
-                            Mono.just(UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities))
-                        } else {
-                            Mono.error<Authentication>(BadCredentialsException("Invalid token"))
+                    // Load user details based on the extracted username
+                    Mono.justOrEmpty(userDetailsServiceImpl.loadUserByUsername(username))
+                        .flatMap { userDetails ->
+                            // Validate the token using userDetails and token
+                            if (jwtService.validateToken(userDetails, token)) {
+                                Mono.just(
+                                    UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.authorities
+                                    )
+                                )
+                            } else {
+                                Mono.error<Authentication>(BadCredentialsException("Invalid token"))
+                            }
                         }
-                    }
-            }
-            .onErrorResume { e ->
-                if (e is AuthenticationServiceException) {
-                    Mono.error(e)
-                } else {
-                    Mono.error(AuthenticationServiceException("Authentication failed", e))
+                } catch (e: Exception) {
+                    // Handle any exception during token parsing (invalid token, etc.)
+                    Mono.error(BadCredentialsException("Invalid token format or parsing error"))
                 }
             }
     }
+
 }

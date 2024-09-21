@@ -3,6 +3,7 @@ package com.ivo.book_network.security
 import com.ivo.book_network.security.dto.TokenResponse
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtBuilder
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
@@ -13,6 +14,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.crypto.SecretKey
+
 
 @Service
 class JWTService(
@@ -46,6 +48,15 @@ class JWTService(
         val unExpired: Boolean = claims.expiration.after(Date.from(Instant.now()))
 
         return unExpired && user.username == claims.subject
+    }
+
+    fun isValid(token: String?): Boolean {
+        try {
+            parser.parseClaimsJws(token)
+            return true
+        } catch (e: JwtException) {
+            return false
+        }
     }
 
     fun getUsername(token: String): String {
