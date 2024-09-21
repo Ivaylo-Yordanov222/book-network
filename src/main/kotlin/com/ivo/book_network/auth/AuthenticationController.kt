@@ -25,4 +25,9 @@ class AuthenticationController(private val authService: AuthenticationService) {
     fun login(@RequestBody request: LoginRequest): ResponseEntity<TokenResponse> {
         return ResponseEntity.ok(authService.login(request))
     }
+
+    @GetMapping("/activate-account")
+    fun activate(@RequestParam token:String) {
+        authService.activateAccount(token)
+    }
 }

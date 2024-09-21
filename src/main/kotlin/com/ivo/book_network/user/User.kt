@@ -21,21 +21,22 @@ data class User(
     private val id: Int?,
     private val firstname: String,
     private val lastname: String,
-    private val dateOfBirth: LocalDate,
+    private val dateOfBirth: LocalDate? = null,
     @Column(unique = true)
     private val email: String,
     private val password: String,
-    private val accountLocked: Boolean,
-    private val enabled: Boolean,
+    private val accountLocked: Boolean = false,
+    private var enabled: Boolean = false,
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private val createdDate: LocalDateTime?,
+    private val createdDate: LocalDateTime,
     @LastModifiedDate
     @Column(insertable = false)
     private val lastModifiedDate: LocalDateTime?,
     @ManyToMany(fetch = FetchType.EAGER)
     private val roles: List<Role>
 ) : UserDetails, Principal {
+
     override fun getName(): String {
         return email
     }
@@ -70,7 +71,11 @@ data class User(
         return enabled
     }
 
-    private fun fullName(): String {
+    fun setEnabled(value: Boolean) {
+        enabled = value
+    }
+
+    fun fullName(): String {
         return "$firstname $lastname"
     }
 }

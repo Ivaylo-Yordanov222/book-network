@@ -1,7 +1,9 @@
 package com.ivo.book_network.user
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
+import java.time.Instant
 
 @Entity
 data class Token(
@@ -9,10 +11,15 @@ data class Token(
     @GeneratedValue
     private val id: Int?,
     private val token: String,
-    private val createdAt: LocalDateTime,
-    private val expiresAt: LocalDateTime,
-    private val validatedAt: LocalDateTime?,
+    private val createdAt: Instant,
+    val expiresAt: Instant,
+    private var validatedAt: Instant?,
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private val user: User
-)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    val user: User
+) {
+    fun setValidatedAt(dateTime: Instant) {
+        this.validatedAt = dateTime
+    }
+}

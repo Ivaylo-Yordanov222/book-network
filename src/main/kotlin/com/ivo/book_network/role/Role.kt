@@ -6,7 +6,7 @@ import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Entity
 @EntityListeners(AuditingEntityListener::class)
@@ -18,10 +18,10 @@ data class Role(
     val name: String,
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private val createdDate: LocalDateTime,
+    private val createdDate: Instant,
     @LastModifiedDate
     @Column(insertable = false)
-    private var lastModifiedDate: LocalDateTime? = null,
+    private var lastModifiedDate: Instant? = null,
     @ManyToMany(mappedBy = "roles")
     @JsonIgnore
     private val users: List<User>? = null
