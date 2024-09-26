@@ -81,4 +81,14 @@ class GlobalExceptionHandler {
         val response = ErrorResponse(status.value(), ex.message!!)
         return ResponseEntity(response, status)
     }
+
+    @ExceptionHandler(ValidationErrorsException::class)
+    fun handleValidationErrorsException(
+        ex: ValidationErrorsException,
+        exchange: ServerWebExchange
+    ): ResponseEntity<ErrorResponse> {
+        val status = HttpStatus.BAD_REQUEST
+        val response = ErrorResponse(status.value(), ex.message!!, ex.errors)
+        return ResponseEntity(response, status)
+    }
 }
