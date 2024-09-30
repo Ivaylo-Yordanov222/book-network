@@ -23,7 +23,7 @@ class SecurityConfig {
 
         return http.authorizeExchange { auth ->
             auth.pathMatchers(
-                "api/v1/auth/**",
+                "/api/v1/auth/**",
                 "/v2/api-docs",
                 "/v3/api-docs",
                 "/v3/api-docs/**",
