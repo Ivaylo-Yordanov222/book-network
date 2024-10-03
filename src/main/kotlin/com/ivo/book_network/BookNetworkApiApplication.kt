@@ -18,7 +18,6 @@ class BookNetworkApiApplication(
 ) : CommandLineRunner {
     override fun run(vararg args: String?) {
         roleRepository.save(Role(1, RoleType.USER.name, Instant.now(), null, null))
-        println("Test")
     }
 }
 
