@@ -7,6 +7,10 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.reactive.CorsConfigurationSource
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
+
 
 @EnableReactiveMethodSecurity
 @Configuration
@@ -41,20 +45,21 @@ class SecurityConfig {
             .httpBasic { httpBasic -> httpBasic.disable() }
             .formLogin { formLogin -> formLogin.disable() }
             .csrf { cr -> cr.disable() }
+            .cors { cors -> cors.configurationSource(corsConfigurationSource()) }
             .build()
     }
-}
 
-/*@Bean
-fun corsConfigurationSource(): CorsConfigurationSource {
-    val configuration = CorsConfiguration().apply {
-        allowedOrigins = listOf("*")
-        allowedMethods = listOf("GET", "POST", "PUT", "DELETE")
-        allowedHeaders = listOf("*")
-        allowCredentials = true
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration().apply {
+            allowedOrigins = listOf("http://localhost:4200")
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            allowedHeaders = listOf("*")
+            allowCredentials = true
+        }
+
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration)
+        return source
     }
-
-    val source = UrlBasedCorsConfigurationSource()
-    source.registerCorsConfiguration("/**", configuration)
-    return source
-}*/
+}
